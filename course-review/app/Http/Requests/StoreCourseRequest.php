@@ -20,12 +20,13 @@ class StoreCourseRequest extends FormRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
-    public function rules(): array 
+    public function rules(): array
     {
         return [
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'instructor' => 'required|string|max:255',
+            'slug' => 'required|string|unique:courses', // <-- ESTA LÍNEA ES LA CURA
         ];
     }
 
@@ -34,7 +35,7 @@ class StoreCourseRequest extends FormRequest
      *
      * @return void
      */
-    protected function prepareForValidation(): void // <-- COMENTARIO CORREGIDO
+    protected function prepareForValidation(): void
     {
         $this->merge([
             'slug' => Str::slug($this->title),

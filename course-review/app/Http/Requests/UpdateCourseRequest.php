@@ -1,9 +1,10 @@
 <?php
 
-namespace App\HttpC\Requests;
+namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Str; // <-- NUEVA LÍNEA
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule; // <-- NUEVA LÍNEA
 
 class UpdateCourseRequest extends FormRequest
 {
@@ -12,7 +13,7 @@ class UpdateCourseRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true; // <-- LÍNEA MODIFICADA (de false a true)
+        return true;
     }
 
     /**
@@ -22,11 +23,17 @@ class UpdateCourseRequest extends FormRequest
      */
     public function rules(): array
     {
-        // <-- SECCIÓN MODIFICADA
         return [
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'instructor' => 'required|string|max:255',
+            'slug' => [ // <-- SECCIÓN MODIFICADA
+                'required',
+                'string',
+                // Le decimos a Laravel que la regla 'unique'
+                // debe ignorar el 'slug' del curso que ya está en la ruta.
+                Rule::unique('courses')->ignore($this->route('course')),
+            ],
         ];
     }
 
@@ -35,7 +42,7 @@ class UpdateCourseRequest extends FormRequest
      *
      * @return void
      */
-    protected function prepareForValidation(): void // <-- NUEVO MÉTODO
+    protected function prepareForValidation(): void
     {
         $this->merge([
             'slug' => Str::slug($this->title),
