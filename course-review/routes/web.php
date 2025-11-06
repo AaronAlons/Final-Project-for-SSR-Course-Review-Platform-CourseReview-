@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\PublicCourseController; // <-- Ya lo tenías
+use App\Http\Controllers\ReviewController; // <-- NUEVA LÍNEA
 
 Route::get('/', [PublicCourseController::class, 'index'])->name('home');
 
@@ -24,6 +25,10 @@ Route::middleware('auth')->group(function () {
     // --- RUTAS DE ADMIN (FASE 2) ---
     // Rutas para administrar cursos
     Route::resource('courses', CourseController::class)->except(['index', 'show']);
+
+    // --- RUTA DE RESEÑAS (FASE 4) --- // <-- NUEVA SECCIÓN
+    Route::post('/curso/{course}/reviews', [ReviewController::class, 'store']) // <-- NUEVA LÍNEA
+          ->name('reviews.store'); // <-- NUEVA LÍNEA
 });
 
 require __DIR__.'/auth.php';
