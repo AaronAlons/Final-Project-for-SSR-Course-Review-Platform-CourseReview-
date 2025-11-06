@@ -1,16 +1,17 @@
 <?php
 
-namespace App\HttpControllers;
+namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Course; // <-- NUEVA LÍNEA
+use App\Models\Course;
+use Illuminate\Routing\Controller; // <-- ESTA ES LA LÍNEA QUE FALTABA
 
 class PublicCourseController extends Controller
 {
     /**
      * Muestra la página de inicio con la lista de cursos paginados.
      */
-    public function index() // <-- NUEVO MÉTODO
+    public function index()
     {
         // Obtenemos los cursos (paginados)
         $courses = Course::latest()->paginate(10);
@@ -22,7 +23,7 @@ class PublicCourseController extends Controller
     /**
      * Muestra la vista de detalle de un curso específico.
      */
-    public function show(Course $course) // <-- NUEVO MÉTODO
+    public function show(Course $course)
     {
         // Cargamos el curso y sus reseñas (Eager Loading para optimizar queries)
         // Esto previene el problema N+1
