@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -45,7 +46,19 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
-    public function reviews()
+    
+    /**
+     * Get the courses that the user has created.
+     */
+    public function courses(): HasMany // <<-- RELACIÓN AÑADIDA
+    {
+        return $this->hasMany(Course::class);
+    }
+
+    /**
+     * Get the reviews that the user has made.
+     */
+    public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);
     }
