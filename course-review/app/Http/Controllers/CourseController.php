@@ -15,16 +15,7 @@ class CourseController extends Controller
     // Obtiene solo los cursos creados por el usuario autenticado.
     // Usamos el método 'user()' para obtener la instancia del usuario actual.
     $courses = auth()->user()->courses()->latest()->paginate(10); 
-    
-    // Si queremos que un administrador vea todos los cursos, la lógica es diferente:
-    /*
-    if (auth()->user()->id === 1) { // Lógica simple de administrador
-        $courses = Course::latest()->paginate(10);
-    } else {
-        $courses = auth()->user()->courses()->latest()->paginate(10);
-    }
-    */
-    
+
     return view('courses.index', compact('courses'));
 }
 
@@ -82,7 +73,6 @@ class CourseController extends Controller
 
     public function indexPublic()
 {
-    // Carga los cursos más recientes para la página de inicio
     // Solo mostramos 6 cursos o los que se definan para el "Home"
     $courses = Course::latest()->take(6)->get(); 
     
@@ -97,13 +87,7 @@ class CourseController extends Controller
 
 public function showPublic(Course $course) // Course $course ya está cargado por el slug
 {
-    // Cargar las reseñas relacionadas al curso para mostrarlas.
-    // También precargamos el usuario que hizo la reseña (user) para evitar el problema N+1.
     $reviews = $course->reviews()->with('user')->latest()->get(); 
-
-    // También necesitamos el promedio de calificación (si ya implementaste el atributo)
-    // $averageRating = $course->average_rating; 
-
     return view('courses.show', compact('course', 'reviews'));
 }
 }
