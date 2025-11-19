@@ -39,7 +39,7 @@
                             <span class="ml-auto text-sm text-gray-500">{{ $review->created_at->diffForHumans() }}</span>
                         </div>
                         <p class="text-gray-700 italic border-l-4 border-indigo-500 pl-4">
-                            "{{ $review->comment }}"
+                            "{{ $review->content }}"
                         </p>
                     </div>
                 @empty
@@ -83,11 +83,10 @@
                 
                 {{-- Comentario --}}
                 <div class="mb-4">
-                    <label for="comment" class="block font-medium text-sm text-gray-700">Comentario</label>
-                    <textarea id="comment" name="comment" rows="4" required class="block mt-1 w-full border-gray-300 rounded-md shadow-sm" placeholder="¿Qué te pareció el curso?">{{ old('comment') }}</textarea>
-                    @error('comment')
-                        <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
-                    @enderror
+                <label for="content" class="block font-medium text-sm text-gray-700">Comentario</label>
+                <textarea id="content" name="content" rows="4" required class="block mt-1 w-full border-gray-300 rounded-md shadow-sm" placeholder="¿Qué te pareció el curso?">{{ old('content') }}</textarea>
+                @error('content') <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                @enderror
                 </div>
                 
                 {{-- Mensaje de error si ya reseñó --}}

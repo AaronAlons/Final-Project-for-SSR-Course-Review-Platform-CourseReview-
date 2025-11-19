@@ -3,91 +3,114 @@
 namespace App\Http\Controllers;
 
 use App\Models\Course;
+use App\Http\Requests\StoreCourseRequest; 
+use App\Http\Requests\UpdateCourseRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str; 
+use Illuminate\Support\Facades\Auth; // <-- ¡Aseguramos esta importación!
 
 class CourseController extends Controller
 {
+    // === MÉTODOS DE LISTADO Y HOME ===
+
     /**
-     * Display a listing of the resource.
+     * Muestra la lista de cursos en el Dashboard para el usuario autenticado (R1).
      */
     public function index()
-{
-    // Obtiene solo los cursos creados por el usuario autenticado.
-    // Usamos el método 'user()' para obtener la instancia del usuario actual.
-    $courses = auth()->user()->courses()->latest()->paginate(10); 
+    {
+        // Obtiene solo los cursos creados por el usuario autenticado.
+        $courses = auth()->user()->courses()->latest()->paginate(10); 
 
-    return view('courses.index', compact('courses'));
-}
+        $platformData = [
+            'title' => 'Mis Cursos Creados',
+            'subtitle' => 'Gestiona aquí los cursos que has creado.',
+        ];
+
+        // *** CAMBIO CLAVE ***: Usa la vista de gestión
+        return view('courses.index', compact('courses', 'platformData')); 
+        // Asegúrate de que tienes un archivo resources/views/courses/index.blade.php
+    }
 
     /**
-     * Show the form for creating a new resource.
+     * Muestra la página de inicio pública (R7).
+     * Asegura que las tres variables (featuredCourses, courses, platformData) existan.
      */
+    public function indexPublic()
+    {
+        // 1. Preparar la consulta base con el promedio de rating
+        // (Esto ya asume que la tabla 'reviews' existe después del migrate:fresh)
+        $query = Course::withAvg('reviews', 'rating');
+
+        // 2. Obtener los cursos destacados (featured)
+        // Usamos una consulta independiente para asegurar que featuredCourses siempre se defina.
+        $featuredCourses = Course::withAvg('reviews', 'rating')->featured()->get();
+        
+        // 3. Obtener el resto de los cursos, excluyendo los IDs destacados.
+        $allCourses = Course::withAvg('reviews', 'rating')
+                            ->whereNotIn('id', $featuredCourses->pluck('id'))
+                            ->latest()
+                            ->get();
+
+        // 4. Definir la data estática para la vista
+        $platformData = [
+            'title' => 'Plataforma de Reseñas de Cursos',
+            'subtitle' => 'Encuentra tu próximo curso y deja tu opinión sincera.',
+        ];
+
+        return view('home', [
+            'featuredCourses' => $featuredCourses, 
+            'courses' => $allCourses,             
+            'platformData' => $platformData,  
+        ]);
+    }
+
+    // === MÉTODOS DEL CRUD DE CURSOS (PROTEGIDOS) ===
+    
     public function create()
     {
-        //
+        $categories = ['Programacion', 'Lenguajes', 'Ofimatica', 'Diseño', 'Marketing', 'Hardware'];
+        return view('courses.create', compact('categories'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(StoreCourseRequest $request)
     {
-        //
+        $data = $request->validated();
+        $data['user_id'] = auth()->id();
+        $data['slug'] = Str::slug($data['title']);
+
+        Course::create($data);
+
+        return redirect()->route('dashboard')->with('success', 'Curso creado con éxito.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Course $course)
+    public function showPublic(Course $course)
     {
-        //
+        $reviews = $course->reviews()->with('user')->latest()->get(); 
+        return view('courses.show', compact('course', 'reviews'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
+    public function show(Course $course) 
+    { 
+        abort(404); 
+    }
+
     public function edit(Course $course)
     {
-        // Retorna la vista con el objeto Course para prellenar el formulario
-    return view('courses.edit', compact('course'));
+        $categories = ['Programacion', 'Lenguajes', 'Ofimatica', 'Diseño', 'Marketing', 'Hardware'];
+        return view('courses.edit', compact('course', 'categories'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateCourseRequest $request, Course $course) // [cite: 97]
+    public function update(UpdateCourseRequest $request, Course $course)
     {
-    // Los datos ya están validados por UpdateCourseRequest
-    $course->update($request->validated()); 
-    return redirect()->route('dashboard')->with('success', 'Curso actualizado correctamente.');
+        $data = $request->validated();
+        $data['slug'] = Str::slug($data['title']);
+        $course->update($data); 
+        return redirect()->route('dashboard')->with('success', 'Curso actualizado correctamente.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Course $course)
     {
-    $course->delete(); // Elimina el registro
-    return redirect()->route('dashboard')->with('success', 'Curso eliminado correctamente.'); // Redirecciona a donde liste los cursos
+        $course->delete();
+        return redirect()->route('dashboard')->with('success', 'Curso eliminado correctamente.');
     }
-
-    public function indexPublic()
-{
-    // Solo mostramos 6 cursos o los que se definan para el "Home"
-    $courses = Course::latest()->take(6)->get(); 
-    
-    // Aquí puedes definir datos estáticos de la plataforma
-    $platformData = [
-        'title' => 'Plataforma de Reseñas de Cursos',
-        'subtitle' => 'Encuentra tu próximo curso y deja tu opinión sincera.',
-    ];
-    
-    return view('home', compact('courses', 'platformData'));
-}
-
-public function showPublic(Course $course) // Course $course ya está cargado por el slug
-{
-    $reviews = $course->reviews()->with('user')->latest()->get(); 
-    return view('courses.show', compact('course', 'reviews'));
-}
 }

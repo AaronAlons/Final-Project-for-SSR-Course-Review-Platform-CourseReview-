@@ -3,37 +3,25 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Http\Requests\StoreReviewRequest;
-use App\Models\Review;
+use App\Http\Requests\StoreReviewRequest; // Importación necesaria
+use App\Models\Review; // Importación necesaria
 
 class ReviewController extends Controller
 {
+    /**
+     * Guarda una nueva reseña en la base de datos.
+     */
     public function store(StoreReviewRequest $request)
     {
-        $validated = $request->validated();
+        $data = $request->validated();
         
-        // Verificar si el usuario ya ha reseñado este curso (opcional, pero buena práctica)
-        $existingReview = Review::where('user_id', auth()->id())
-                                ->where('course_id', $validated['course_id'])
-                                ->exists();
+        // 2. Agregar el ID del usuario autenticado
+        $data['user_id'] = auth()->id();
         
-        if ($existingReview) {
-             return back()->withErrors(['review_error' => 'Ya has dejado una reseña para este curso.'])->withInput();
-        }
-
-        // Crear la reseña
-        Review::create([
-            'user_id' => auth()->id(),
-            'course_id' => $validated['course_id'],
-            'rating' => $validated['rating'],
-            'comment' => $validated['comment'],
-        ]);
-
-        // Redirigir de vuelta a la página de detalle del curso (usando el ID para simplificar)
-        // Nota: Idealmente, redirigiríamos usando el slug. Buscamos el curso:
-        $course = \App\Models\Course::find($validated['course_id']); 
-
-        return redirect()->route('courses.show', $course->slug)
-            ->with('success', '¡Gracias! Tu reseña ha sido enviada.');
+        // 3. Crear la reseña (ahora $data contiene todos los campos necesarios)
+        Review::create($data); 
+        
+        // 4. Redireccionar
+        return back()->with('success', '¡Reseña enviada con éxito!');
     }
 }
