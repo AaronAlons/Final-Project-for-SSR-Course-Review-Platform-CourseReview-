@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade'); // El creador del curso (instructor)
             $table->string('title');
             $table->string('slug')->unique(); // Columna esencial para las rutas
-            
+            $table->string('instructor');
             // Las columnas que faltaban o estaban en el lugar equivocado
             $table->text('description'); 
             $table->string('image_url')->nullable(); // ¡Esta es la que faltaba!
