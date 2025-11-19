@@ -11,13 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-       Schema::create('courses', function (Blueprint $table) {
+        Schema::create('courses', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade'); // El creador del curso (instructor)
             $table->string('title');
-            $table->string('slug')->unique(); // Esencial para SEO [cite: 32]
-            $table->text('description');
-            $table->string('instructor');
+            $table->string('slug')->unique(); // Columna esencial para las rutas
+            
+            // Las columnas que faltaban o estaban en el lugar equivocado
+            $table->text('description'); 
+            $table->string('image_url')->nullable(); // ¡Esta es la que faltaba!
+            
             $table->timestamps();
         });
     }

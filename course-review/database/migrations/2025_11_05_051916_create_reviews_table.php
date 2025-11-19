@@ -11,13 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-       Schema::create('reviews', function (Blueprint $table) {
+        Schema::create('reviews', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade'); // Relación con User
-            $table->foreignId('course_id')->constrained()->onDelete('cascade'); // Relación con Course
-            $table->unsignedTinyInteger('rating'); // Calificación 1-5
-            $table->text('comment');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('course_id')->constrained()->onDelete('cascade');
+            $table->unsignedTinyInteger('rating');
             $table->timestamps();
+            $table->text('content'); 
         });
     }
 

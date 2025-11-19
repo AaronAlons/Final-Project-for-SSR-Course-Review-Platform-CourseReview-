@@ -52,9 +52,9 @@
         
         @if ($courses->count() > 0)
             <div class="mt-10 text-center">
-                <a href="{{ route('courses.list') }}" class="inline-block bg-gray-800 text-white hover:bg-gray-700 font-bold py-3 px-6 rounded-lg transition duration-300">
-                    Ver Todos los Cursos (Próximamente)
-                </a>
+                <a href="{{ route('home') }}" class="inline-block bg-gray-800 text-white hover:bg-gray-700 font-bold py-3 px-6 rounded-lg transition duration-300">
+    Ver Todos los Cursos
+</a>
             </div>
         @endif
     </div>
