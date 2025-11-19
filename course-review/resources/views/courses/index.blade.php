@@ -32,46 +32,50 @@
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Instructor
                             </th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Acciones
                             </th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
+                        {{-- Inicio del Loop para mostrar los cursos --}}
                         @forelse ($courses as $course)
-                        {{-- La directiva @can asegura que solo se muestre el curso si el usuario tiene permiso (Política) --}}
-                        @can('update', $course) 
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                {{ $course->title }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {{ $course->instructor }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                {{-- Botón de Editar --}}
-                                <a href="{{ route('courses.edit', $course) }}" class="text-indigo-600 hover:text-indigo-900 mr-4">
-                                    Editar
-                                </a>
+                            <tr>
+                                {{-- Columna de Título --}}
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    <a href="{{ route('courses.show', $course->slug) }}" class="text-indigo-600 hover:text-indigo-800">
+                                        {{ $course->title }}
+                                    </a>
+                                </td>
+                                {{-- Columna de Instructor --}}
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ $course->instructor }}
+                                </td>
+                                {{-- Columna de Acciones (Editar/Eliminar) --}}
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    {{-- Botón de Editar --}}
+                                    <a href="{{ route('courses.edit', $course->slug) }}" class="text-indigo-600 hover:text-indigo-900 mr-4">
+                                        Editar
+                                    </a>
 
-                                {{-- Formulario de Eliminar --}}
-                                <form action="{{ route('courses.destroy', $course) }}" method="POST" class="inline" onsubmit="return confirm('¿Está seguro de que desea eliminar este curso?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-red-600 hover:text-red-900">
-                                        Eliminar
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                        @endcan
+                                    {{-- Formulario de Eliminar --}}
+                                    <form action="{{ route('courses.destroy', $course->slug) }}" method="POST" class="inline" onsubmit="return confirm('¿Está seguro de que desea eliminar este curso? Esta acción es irreversible.');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="text-red-600 hover:text-red-900">
+                                            Eliminar
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
                         @empty
-                        <tr>
-                            <td colspan="3" class="px-6 py-4 text-center text-gray-500">
-                                No has creado ningún curso todavía.
-                            </td>
-                        </tr>
+                            <tr>
+                                <td colspan="3" class="px-6 py-4 text-center text-gray-500">
+                                    No has creado ningún curso todavía.
+                                </td>
+                            </tr>
                         @endforelse
+                        {{-- Fin del Loop --}}
                     </tbody>
                 </table>
             </div>
