@@ -11,32 +11,30 @@ class UpdateCourseRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false; //hace que si no esta autenticado no pueda editar
+        // La autorización se maneja en el controlador (o policy), 
+        // pero aquí confirmamos que el usuario está logueado.
+        return auth()->check();
     }
 
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array|string>
      */
     public function rules(): array
-{
-    // Usamos $this->route('course') para obtener el objeto Course
-    $courseId = $this->route('course') ? $this->route('course')->id : null; 
-    
-    return [
-        // title, description, instructor: Requeridos
-        'title' => 'required|string|max:255',
-        'description' => 'required|string',
-        'instructor' => 'required|string|max:255',
-        
-        // slug: Requerido, único, e ignora el slug del curso actual ($courseId)
-        'slug' => [ 
-            'required',
-            'string',
-            'max:255',
-            'unique:courses,slug,' . $courseId, // [cite: 34]
-        ],
-    ];
-}
+    {
+        // 🚨 REGLAS ACTUALIZADAS: Quitamos 'price' y añadimos 'image_url' y 'modules' 🚨
+        return [
+            'title' => ['required', 'string', 'max:255'],
+            'instructor' => ['required', 'string', 'max:255'],
+            'description' => ['required', 'string'],
+            'category' => ['required', 'string', 'max:255'],
+            
+            // Nuevo: Campo para la URL de la imagen
+            'image_url' => ['nullable', 'url', 'max:255'], 
+            
+            // Nuevo: Campo para los módulos (se asume un texto largo)
+            'modules' => ['required', 'string'],
+        ];
+    }
 }

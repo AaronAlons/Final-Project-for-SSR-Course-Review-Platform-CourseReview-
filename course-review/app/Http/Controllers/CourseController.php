@@ -9,17 +9,16 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str; 
 use Illuminate\Support\Facades\Auth;
 
+// *** IMPORTACIÓN CLAVE QUE FALTABA ***
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+
 class CourseController extends Controller
 {
-    // === MÉTODOS DE LISTADO Y HOME ===
+    use AuthorizesRequests;
 
-    /**
-     * Muestra la lista de cursos en el Dashboard para el usuario autenticado (R1).
-     */
     public function index()
     {
-        // Obtiene solo los cursos creados por el usuario autenticado.
-        // Asume que la relación 'courses()' está definida en el modelo User.
+        
         $courses = auth()->user()->courses()->latest()->paginate(10); 
 
         $platformData = [
@@ -43,13 +42,13 @@ class CourseController extends Controller
         // Usamos una consulta independiente para asegurar que featuredCourses siempre se defina.
         $featuredCourses = Course::withAvg('reviews', 'rating')->featured()->get();
         
-        // 3. Obtener el resto de los cursos, excluyendo los IDs destacados.
+        // 3. Obtener el resto de cursos, excluyendo los destacados
+        // Usamos whereNotIn para evitar duplicados si un curso cumple ambas condiciones
         $allCourses = Course::withAvg('reviews', 'rating')
                             ->whereNotIn('id', $featuredCourses->pluck('id'))
                             ->latest()
                             ->get();
 
-        // 4. Definir la data estática para la vista
         $platformData = [
             'title' => 'Plataforma de Reseñas de Cursos',
             'subtitle' => 'Encuentra tu próximo curso y deja tu opinión sincera.',
@@ -64,25 +63,16 @@ class CourseController extends Controller
 
     // === MÉTODOS DEL CRUD DE CURSOS (PROTEGIDOS) ===
     
-    /**
-     * Muestra el formulario para crear un nuevo curso.
-     */
     public function create()
     {
         $categories = ['Programacion', 'Lenguajes', 'Ofimatica', 'Diseño', 'Marketing', 'Hardware'];
         return view('courses.create', compact('categories'));
     }
 
-    /**
-     * Almacena un nuevo curso en la base de datos.
-     */
     public function store(StoreCourseRequest $request)
     {
         $data = $request->validated();
-        
-        // ASIGNACIÓN CLAVE: Asigna el ID del usuario autenticado al curso.
         $data['user_id'] = auth()->id(); 
-        
         $data['slug'] = Str::slug($data['title']);
 
         Course::create($data);
@@ -91,10 +81,11 @@ class CourseController extends Controller
     }
 
     /**
-     * Muestra la vista pública del detalle del curso (con reseñas).
+     * Muestra la página pública de un curso.
      */
     public function showPublic(Course $course)
     {
+        // Carga las reseñas relacionadas con el curso y su usuario para mostrar
         $reviews = $course->reviews()->with('user')->latest()->get(); 
         return view('courses.show', compact('course', 'reviews'));
     }
@@ -113,7 +104,8 @@ class CourseController extends Controller
      */
     public function edit(Course $course)
     {
-        // Aquí puedes añadir una verificación de política (ej: $this->authorize('update', $course);)
+        // Autorización: ahora el método authorize() funcionará gracias al trait.
+        $this->authorize('update', $course);
         $categories = ['Programacion', 'Lenguajes', 'Ofimatica', 'Diseño', 'Marketing', 'Hardware'];
         return view('courses.edit', compact('course', 'categories'));
     }
@@ -123,7 +115,8 @@ class CourseController extends Controller
      */
     public function update(UpdateCourseRequest $request, Course $course)
     {
-        // Aquí puedes añadir una verificación de política.
+        // Autorización: ahora el método authorize() funcionará.
+        $this->authorize('update', $course); 
         $data = $request->validated();
         $data['slug'] = Str::slug($data['title']);
         $course->update($data); 
@@ -135,7 +128,9 @@ class CourseController extends Controller
      */
     public function destroy(Course $course)
     {
-        // Aquí puedes añadir una verificación de política.
+        // Autorización: ahora el método authorize() funcionará.
+        $this->authorize('delete', $course); 
+        
         $course->delete();
         return redirect()->route('dashboard')->with('success', 'Curso eliminado correctamente.');
     }
