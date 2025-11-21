@@ -1,79 +1,55 @@
-@extends('layouts.app') 
+@extends('layouts.app')
 
 @section('content')
-<div class="py-12 bg-gray-50 min-h-screen">
+<div class="py-12">
     <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
-        {{-- Card principal con sombreado y bordes redondeados --}}
-        <div class="bg-white overflow-hidden shadow-2xl sm:rounded-xl p-8 lg:p-10 border border-gray-100">
-            
-            {{-- Encabezado --}}
-            <h2 class="text-3xl font-extrabold mb-8 text-gray-900">
-                <i class="fas fa-plus-circle text-indigo-600 mr-2"></i> Crear Nuevo Curso
+        <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-8">
+            <h2 class="text-3xl font-extrabold text-gray-900 mb-6 border-b pb-2">
+                ✨ Crear Nuevo Curso
             </h2>
 
-            {{-- Separador decorativo --}}
-            <div class="h-1 bg-indigo-100 mb-8 rounded-full"></div>
-
-            {{-- Formulario que apunta al método store del controlador --}}
-            <form method="POST" action="{{ route('courses.store') }}">
+            {{-- 🚨 CRÍTICO: Añadimos enctype="multipart/form-data" para permitir la subida de archivos 🚨 --}}
+            <form action="{{ route('courses.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
-                
-                {{-- Contenedor de Formulario con espaciado uniforme --}}
-                <div class="space-y-6">
 
-                    {{-- Título del Curso --}}
+                {{-- Título, Instructor y Categoría --}}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div>
-                        <label for="title" class="block font-semibold text-sm text-gray-700 mb-1">Título del Curso</label>
-                        <input id="title" 
-                               class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition duration-150" 
-                               type="text" 
-                               name="title" 
-                               value="{{ old('title') }}" 
-                               placeholder="Ej: Desarrollo Web con Laravel y Vue"
-                               required autofocus />
+                        <label for="title" class="block text-sm font-medium text-gray-700">Título del Curso</label>
+                        <input type="text" name="title" id="title" required
+                               class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                               value="{{ old('title') }}">
                         @error('title')
                             <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                         @enderror
                     </div>
-                    
-                    {{-- Categoría (Select) --}}
+
                     <div>
-                        <label for="category" class="block font-semibold text-sm text-gray-700 mb-1">Categoría</label>
-                        <select id="category" name="category" 
-                                class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition duration-150" 
-                                required>
-                            <option value="">— Selecciona una Categoría —</option>
-                            {{-- Las categorías se pasan desde el controlador --}}
-                            @if (isset($categories))
-                                @foreach ($categories as $category)
-                                    <option value="{{ $category }}" {{ old('category') == $category ? 'selected' : '' }}>
-                                        {{ $category }}
-                                    </option>
-                                @endforeach
-                            @endif
+                        <label for="instructor" class="block text-sm font-medium text-gray-700">Nombre del Instructor</label>
+                        <input type="text" name="instructor" id="instructor" required
+                               class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                               value="{{ old('instructor') }}">
+                        @error('instructor')
+                            <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="category" class="block text-sm font-medium text-gray-700">Categoría</label>
+                        <select name="category" id="category" required
+                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <option value="">Selecciona una categoría</option>
+                            @foreach ($categories as $cat)
+                                <option value="{{ $cat }}" {{ old('category') == $cat ? 'selected' : '' }}>{{ $cat }}</option>
+                            @endforeach
                         </select>
                         @error('category')
                             <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                         @enderror
                     </div>
 
-                    {{-- URL de Imagen --}}
                     <div>
-                        <label for="image_url" class="block font-semibold text-sm text-gray-700 mb-1">URL de Imagen (Miniatura del Curso)</label>
-                        <input id="image_url" 
-                               class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition duration-150" 
-                               type="url" 
-                               name="image_url" 
-                               value="{{ old('image_url') }}"
-                               placeholder="https://ejemplo.com/imagen.jpg" />
-                        @error('image_url')
-                            <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    {{-- Conteo de Módulos --}}
-                    <div>
-                        <label for="modules_count" class="block font-semibold text-sm text-gray-700 mb-1">Número de Módulos</label>
+                        <label for="modules_count" class="block text-sm font-medium text-gray-700">Número de Módulos</label>
                         <input id="modules_count" 
                                class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition duration-150" 
                                type="number" 
@@ -84,51 +60,40 @@
                             <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                         @enderror
                     </div>
+                </div>
 
-                    {{-- Nombre del Instructor --}}
-                    <div>
-                        <label for="instructor" class="block font-semibold text-sm text-gray-700 mb-1">Nombre del Instructor</label>
-                        <input id="instructor" 
-                               class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition duration-150" 
-                               type="text" 
-                               name="instructor" 
-                               value="{{ old('instructor') }}" 
-                               placeholder="Ej: Jane Doe"
-                               required />
-                        @error('instructor')
-                            <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    
-                    {{-- Descripción del Curso (Textarea) --}}
-                    <div>
-                        <label for="description" class="block font-semibold text-sm text-gray-700 mb-1">Descripción Detallada</label>
-                        <textarea id="description" 
-                                  name="description" 
-                                  rows="6" 
-                                  placeholder="Describe brevemente de qué trata este curso, a quién está dirigido y qué aprenderán los estudiantes."
-                                  class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition duration-150" 
-                                  required>{{ old('description') }}</textarea>
-                        @error('description')
-                            <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-                </div> {{-- Fin: space-y-6 --}}
+                {{-- Campo para Subir Imagen (image_file) --}}
+                <div class="mb-6">
+                    <label for="image_file" class="block text-sm font-medium text-gray-700">Imagen del Curso (Opcional)</label>
+                    <input type="file" name="image_file" id="image_file" 
+                           class="mt-1 block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none"
+                           accept="image/*">
+                    <p class="text-xs text-gray-500 mt-1">Sube una imagen (máx. 2MB). Si no subes, se usará una imagen de placeholder.</p>
+                    @error('image_file')
+                        <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+                
+                {{-- Campo Descripción --}}
+                <div class="mb-6">
+                    <label for="description" class="block text-sm font-medium text-gray-700">Descripción del Curso</label>
+                    <textarea name="description" id="description" rows="5" required
+                              class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ old('description') }}</textarea>
+                    @error('description')
+                        <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
 
                 {{-- Botones de Acción --}}
-                <div class="flex items-center justify-end mt-10 space-x-4">
-                    {{-- Botón de Cancelar/Volver al Dashboard --}}
-                    <a href="{{ route('dashboard') }}" class="text-gray-500 hover:text-gray-700 font-semibold transition duration-150">
+                <div class="flex items-center justify-end border-t pt-4">
+                    <a href="{{ route('dashboard') }}" class="text-gray-600 hover:text-gray-900 font-medium mr-4 px-4 py-2 rounded-md hover:bg-gray-100 transition duration-150 ease-in-out">
                         Cancelar
                     </a>
-
-                    {{-- Botón de Guardar Curso con estilo moderno --}}
-                    <button type="submit" class="inline-flex items-center px-8 py-3 bg-indigo-600 border border-transparent rounded-full font-bold text-base text-white uppercase tracking-wider hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:ring-4 focus:ring-indigo-300 transition ease-in-out duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105">
-                        <i class="fas fa-save mr-2"></i> Guardar Curso
+                    <button type="submit" class="inline-flex items-center px-6 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-white uppercase tracking-wider hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition ease-in-out duration-150">
+                        ➕ Crear Curso
                     </button>
                 </div>
             </form>
-
         </div>
     </div>
 </div>

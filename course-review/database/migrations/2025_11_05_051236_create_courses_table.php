@@ -13,13 +13,12 @@ return new class extends Migration
     {
         Schema::create('courses', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade'); // El creador del curso (instructor)
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('title');
-            $table->string('slug')->unique(); // Columna esencial para las rutas
+            $table->string('slug')->unique();
             $table->string('instructor');
-            // Las columnas que faltaban o estaban en el lugar equivocado
             $table->text('description'); 
-            $table->string('image_url')->nullable(); // ¡Esta es la que faltaba!
+            $table->string('image_url')->nullable();
             
             $table->timestamps();
         });

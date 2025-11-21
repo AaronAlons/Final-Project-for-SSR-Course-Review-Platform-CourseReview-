@@ -34,9 +34,9 @@
             @foreach ($featuredCourses as $course)
                 <div class="bg-white rounded-lg shadow-lg overflow-hidden transition transform hover:scale-[1.02] duration-300 border-2 border-yellow-400">
                     
-                    {{-- Imagen del Curso --}}
+                    {{-- Imagen del Curso (USANDO STORAGE::URL) --}}
                     <a href="{{ route('courses.show', $course->slug) }}">
-                        <img src="{{ $course->image_url ?? 'https://placehold.co/600x400/D1D5DB/1F2937?text=Curso+Destacado' }}" 
+                        <img src="{{ $course->image_url ? Storage::url($course->image_url) : 'https://placehold.co/600x400/D1D5DB/1F2937?text=Curso+Destacado' }}" 
                              alt="Imagen destacada de {{ $course->title }}"
                              class="w-full h-48 object-cover">
                     </a>
@@ -73,14 +73,13 @@
         </h2>
 
         {{-- Grid de Cursos (Paginado) --}}
-        {{-- 🔥 CRÍTICO: Usamos $courses para el bucle y la paginación --}}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             @forelse ($courses as $course)
                 <div class="bg-white rounded-lg shadow-lg overflow-hidden transition transform hover:scale-[1.02] duration-300">
                     
-                    {{-- Imagen del Curso --}}
+                    {{-- Imagen del Curso (USANDO STORAGE::URL) --}}
                     <a href="{{ route('courses.show', $course->slug) }}">
-                        <img src="{{ $course->image_url ?? 'https://placehold.co/600x400/D1D5DB/1F2937?text=Curso+Sin+Imagen' }}" 
+                        <img src="{{ $course->image_url ? Storage::url($course->image_url) : 'https://placehold.co/600x400/D1D5DB/1F2937?text=Curso+Sin+Imagen' }}" 
                              alt="Imagen destacada de {{ $course->title }}"
                              class="w-full h-48 object-cover">
                     </a>

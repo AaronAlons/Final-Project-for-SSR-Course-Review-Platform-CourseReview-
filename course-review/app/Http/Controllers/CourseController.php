@@ -8,9 +8,10 @@ use App\Http\Requests\UpdateCourseRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str; 
 use Illuminate\Support\Facades\Auth;
-
-// *** IMPORTACIÓN CLAVE QUE FALTABA ***
+// 🔥 NUEVAS IMPORTACIONES: Para manejar la subida de archivos
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+
 
 class CourseController extends Controller
 {
@@ -75,6 +76,18 @@ class CourseController extends Controller
     public function store(StoreCourseRequest $request)
     {
         $data = $request->validated();
+        
+        // 🔥 LÓGICA DE SUBIDA DE IMAGEN
+        if ($request->hasFile('image_file')) {
+            // Guarda la imagen en storage/app/public/course_images
+            // y devuelve la ruta relativa (ej: 'course_images/archivo_hash.jpg')
+            $path = $request->file('image_file')->store('course_images', 'public');
+            $data['image_url'] = $path;
+        } else {
+            // Si no hay archivo, aseguramos que el campo esté vacío.
+            $data['image_url'] = null;
+        }
+
         $data['user_id'] = auth()->id(); // Asigna el ID del usuario actual
         $data['slug'] = Str::slug($data['title']); // Genera el slug
 
@@ -125,6 +138,23 @@ class CourseController extends Controller
         // Autorización: ahora el método authorize() funcionará.
         $this->authorize('update', $course); 
         $data = $request->validated();
+        
+        // 🔥 LÓGICA DE ACTUALIZACIÓN DE IMAGEN
+        if ($request->hasFile('image_file')) {
+            // 1. Eliminar la imagen anterior si existe
+            if ($course->image_url) {
+                Storage::disk('public')->delete($course->image_url);
+            }
+            
+            // 2. Subir la nueva imagen
+            $path = $request->file('image_file')->store('course_images', 'public');
+            $data['image_url'] = $path;
+        } 
+        // Si no se sube un nuevo archivo, mantenemos la imagen_url existente en $course
+        // o si el usuario quiere eliminarla, podría haber un campo adicional, pero por ahora la mantenemos.
+        // Si no se envió 'image_file', simplemente no modificamos $data['image_url'] 
+        // y se usará el valor que ya tenía el curso.
+
         $data['slug'] = Str::slug($data['title']);
         $course->update($data); 
         return redirect()->route('dashboard')->with('success', 'Curso actualizado correctamente.');
@@ -137,6 +167,11 @@ class CourseController extends Controller
     {
         // Autorización: ahora el método authorize() funcionará.
         $this->authorize('delete', $course); 
+        
+        // 🔥 LÓGICA DE ELIMINACIÓN DE IMAGEN
+        if ($course->image_url) {
+            Storage::disk('public')->delete($course->image_url);
+        }
         
         $course->delete();
         return redirect()->route('dashboard')->with('success', 'Curso eliminado correctamente.');

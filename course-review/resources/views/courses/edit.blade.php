@@ -9,12 +9,12 @@
                 ✏️ Editar Curso: {{ $course->title }}
             </h2>
 
-            {{-- 🚨 RUTA CRÍTICA: Debe apuntar a 'courses.update' y usar el método PATCH 🚨 --}}
-            <form action="{{ route('courses.update', $course) }}" method="POST">
+            {{-- 🚨 CRÍTICO: Añadimos enctype="multipart/form-data" 🚨 --}}
+            <form action="{{ route('courses.update', $course) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PATCH') {{-- **IMPORTANTE** para que Laravel use el método update --}}
 
-                {{-- Grupo: Título, Instructor y Categoría --}}
+                {{-- Grupo: Título, Instructor, Categoría y Módulos --}}
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     {{-- Campo Título --}}
                     <div>
@@ -29,8 +29,8 @@
 
                     {{-- Campo Instructor --}}
                     <div>
-                        <label for="instructor" class="block text-sm font-medium text-gray-700">Instructor</label>
-                        <input type="text" name="instructor" id="instructor" required 
+                        <label for="instructor" class="block text-sm font-medium text-gray-700">Nombre del Instructor</label>
+                        <input type="text" name="instructor" id="instructor" required
                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                                value="{{ old('instructor', $course->instructor) }}">
                         @error('instructor')
@@ -38,64 +38,65 @@
                         @enderror
                     </div>
 
-                    {{-- Campo Categoría (Ocupa toda la fila en móvil, media fila en desktop) --}}
-                    <div class="md:col-span-1">
+                    {{-- Campo Categoría --}}
+                    <div>
                         <label for="category" class="block text-sm font-medium text-gray-700">Categoría</label>
-                        <select name="category" id="category" required 
+                        <select name="category" id="category" required
                                 class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                            @php
-                                // Definimos las categorías aquí, aunque idealmente vienen del controlador
-                                $categories = ['Programacion', 'Lenguajes', 'Ofimatica', 'Diseño', 'Marketing', 'Hardware'];
-                            @endphp
+                            <option value="">Selecciona una categoría</option>
                             @foreach ($categories as $cat)
-                                <option value="{{ $cat }}" {{ old('category', $course->category) == $cat ? 'selected' : '' }}>
-                                    {{ $cat }}
-                                </option>
+                                <option value="{{ $cat }}" {{ old('category', $course->category) == $cat ? 'selected' : '' }}>{{ $cat }}</option>
                             @endforeach
                         </select>
                         @error('category')
                             <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                         @enderror
                     </div>
-                    
-                    {{-- Campo URL de Imagen --}}
-                    <div class="md:col-span-1">
-                        <label for="image_url" class="block text-sm font-medium text-gray-700">URL de Imagen (Miniatura)</label>
-                        <input type="url" name="image_url" id="image_url" 
-                               class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                               value="{{ old('image_url', $course->image_url) }}"
-                               placeholder="Ej: https://via.placeholder.com/600x400">
-                        @error('image_url')
-                            <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-                </div>
 
-                {{-- Campo Descripción (Ocupa todo el ancho) --}}
-                <div class="mb-6">
-                    <label for="description" class="block text-sm font-medium text-gray-700">Descripción Detallada del Curso</label>
-                    <textarea name="description" id="description" rows="5" required 
-                              class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                              placeholder="Describe el contenido, objetivos y a quién va dirigido el curso.">{{ old('description', $course->description) }}</textarea>
-                    @error('description')
-                        <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                {{-- Campo Módulos (Ocupa todo el ancho) --}}
-                <div>
-                        <label for="modules_count" class="block font-semibold text-sm text-gray-700 mb-1">Número de Módulos</label>
+                    {{-- Campo Módulos --}}
+                    <div>
+                        <label for="modules_count" class="block text-sm font-medium text-gray-700">Número de Módulos</label>
                         <input id="modules_count" 
                                class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition duration-150" 
                                type="number" 
                                name="modules_count" 
-                               value="{{ old('modules_count', 1) }}" 
+                               value="{{ old('modules_count', $course->modules_count) }}" 
                                min="1" required />
                         @error('modules_count')
                             <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                         @enderror
                     </div>
+                </div>
 
+                {{-- Campo para Subir Imagen (image_file) --}}
+                <div class="mb-6">
+                    <label for="image_file" class="block text-sm font-medium text-gray-700">Cambiar Imagen del Curso (Opcional)</label>
+                    <input type="file" name="image_file" id="image_file" 
+                           class="mt-1 block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none"
+                           accept="image/*">
+                    <p class="text-xs text-gray-500 mt-1">Sube una nueva imagen (máx. 2MB). Si no subes, se mantendrá la actual.</p>
+                    @error('image_file')
+                        <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                    @enderror
+
+                    {{-- Imagen actual si existe --}}
+                    @if ($course->image_url)
+                        <div class="mt-4">
+                            <p class="text-sm font-medium text-gray-700 mb-2">Imagen Actual:</p>
+                            <img src="{{ Storage::url($course->image_url) }}" alt="Imagen actual del curso" class="h-32 w-48 object-cover rounded-md shadow-md">
+                        </div>
+                    @endif
+                </div>
+                
+                {{-- Campo Descripción --}}
+                <div class="mb-6">
+                    <label for="description" class="block text-sm font-medium text-gray-700">Descripción del Curso</label>
+                    <textarea name="description" id="description" rows="5" required
+                              class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ old('description', $course->description) }}</textarea>
+                    @error('description')
+                        <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
 
                 {{-- Botones de Acción --}}
                 <div class="flex items-center justify-end border-t pt-4">

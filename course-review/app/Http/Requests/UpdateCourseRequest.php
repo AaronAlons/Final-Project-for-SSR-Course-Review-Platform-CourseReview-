@@ -23,14 +23,20 @@ class UpdateCourseRequest extends FormRequest
      */
     public function rules(): array
     {
-        // 🚨 REGLAS ACTUALIZADAS: Quitamos 'price' y añadimos 'image_url' y 'modules' 🚨
         return [
             'title' => ['required', 'string', 'max:255'],
             'instructor' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string'],
             'category' => ['required', 'string', 'max:255'],
-            'image_url' => ['nullable', 'url', 'max:255'], 
-            'modules_count' => ['required', 'string'],
+
+            // 🔥 REGLA DE ARCHIVO DE IMAGEN:
+            // Debe ser un archivo, opcional, tipo imagen, y con un tamaño máximo de 2MB.
+            'image_file' => ['nullable', 'image', 'max:2048'], 
+
+            // Dejamos image_url como está, pero la usaremos solo para mostrar la ruta en el controlador
+            'image_url' => ['nullable', 'string', 'max:255'], 
+            
+            'modules_count' => ['required', 'integer', 'min:1'],
         ];
     }
 }
