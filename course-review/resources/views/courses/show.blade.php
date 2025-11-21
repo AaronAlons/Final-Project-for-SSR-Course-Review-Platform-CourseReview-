@@ -7,7 +7,7 @@
         {{-- Sección de Información del Curso --}}
         <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-8 mb-10">
             
-            {{-- 🔥 CRÍTICO: Imagen Destacada del Curso --}}
+            {{-- Imagen del Curso --}}
             <img src="{{ $course->image_url ? Storage::url($course->image_url) : 'https://placehold.co/600x400/D1D5DB/1F2937?text=Curso+Sin+Imagen' }}" 
                  alt="Imagen destacada de {{ $course->title }}"
                  class="w-full h-64 object-cover rounded-lg mb-6 shadow-md">

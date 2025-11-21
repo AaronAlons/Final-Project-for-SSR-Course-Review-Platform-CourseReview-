@@ -63,14 +63,16 @@
                 </div>
 
                 {{-- Campo para Subir Imagen (image_file) --}}
-                <div class="mb-6">
-                    <label for="image_file" class="block text-sm font-medium text-gray-700">Imagen del Curso (Opcional)</label>
-                    <input type="file" name="image_file" id="image_file" 
-                           class="mt-1 block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none"
-                           accept="image/*">
-                    <p class="text-xs text-gray-500 mt-1">Sube una imagen (máx. 2MB). Si no subes, se usará una imagen de placeholder.</p>
+                <div class="mb-8">
+                    <label for="image_file" class="block text-sm font-medium text-gray-700 mb-3">Imagen del Curso (Opcional)</label>
+                    <div class="relative">
+                        <input type="file" name="image_file" id="image_file" 
+                            class="block w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                            accept="image/*">
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2">Sube una imagen (máx. 2MB). Si no subes, se usará una imagen de placeholder.</p>
                     @error('image_file')
-                        <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                        <p class="text-sm text-red-600 mt-2">{{ $message }}</p>
                     @enderror
                 </div>
                 
