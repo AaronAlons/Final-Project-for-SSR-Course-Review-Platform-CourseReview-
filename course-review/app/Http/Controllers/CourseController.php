@@ -33,63 +33,70 @@ class CourseController extends Controller
     /**
      * Muestra la página de inicio pública (R7).
      */
-    public function indexPublic()
+    public function indexPublic(Request $request) // Añadimos Request para paginación
     {
-        // 1. Preparar la consulta base con el promedio de rating
-        $query = Course::withAvg('reviews', 'rating');
+        // 1. Obtener TODOS los cursos Paginados, cargando el promedio de rating
+        $courses = Course::withAvg('reviews', 'rating')
+                         ->withCount('reviews') // Para obtener reviews_count
+                         ->latest()
+                         ->paginate(12); // Paginación para la sección principal.
 
-        // 2. Obtener los cursos destacados (featured)
-        // Usamos una consulta independiente para asegurar que featuredCourses siempre se defina.
-        $featuredCourses = Course::withAvg('reviews', 'rating')->featured()->get();
-        
-        // 3. Obtener el resto de cursos, excluyendo los destacados
-        // Usamos whereNotIn para evitar duplicados si un curso cumple ambas condiciones
-        $allCourses = Course::withAvg('reviews', 'rating')
-                            ->whereNotIn('id', $featuredCourses->pluck('id'))
-                            ->latest()
-                            ->get();
+        // 2. Obtener los cursos destacados (featured) del set paginado
+        // Nota: El featured scope actúa sobre el rating promedio (reviews_avg_rating)
+        // para encontrar los cursos con 5 estrellas.
+        $featuredCourses = $courses->filter(function ($course) {
+            // Filtramos los cursos con rating promedio de 5
+            return $course->reviews_avg_rating == 5;
+        });
 
+        // 3. Preparar la información de la plataforma
         $platformData = [
-            'title' => 'Plataforma de Reseñas de Cursos',
-            'subtitle' => 'Encuentra tu próximo curso y deja tu opinión sincera.',
+            'title' => 'Cursos y Reseñas',
+            'subtitle' => 'Descubre, aprende y comparte tu opinión sobre los mejores cursos.',
         ];
-
-        return view('home', [
-            'featuredCourses' => $featuredCourses, 
-            'courses' => $allCourses,          
-            'platformData' => $platformData,    
-        ]);
+        
+        // 4. Se usa la vista de home, enviando los cursos paginados y los destacados.
+        // Ahora usamos $courses para la paginación principal.
+        return view('home', compact('featuredCourses', 'courses', 'platformData'));
     }
-
-    // === MÉTODOS DEL CRUD DE CURSOS (PROTEGIDOS) ===
     
+    /**
+     * Muestra el formulario para crear un nuevo curso.
+     */
     public function create()
     {
         $categories = ['Programacion', 'Lenguajes', 'Ofimatica', 'Diseño', 'Marketing', 'Hardware'];
         return view('courses.create', compact('categories'));
     }
 
+    /**
+     * Almacena un nuevo curso en la base de datos.
+     */
     public function store(StoreCourseRequest $request)
     {
         $data = $request->validated();
-        $data['user_id'] = auth()->id(); 
-        $data['slug'] = Str::slug($data['title']);
+        $data['user_id'] = auth()->id(); // Asigna el ID del usuario actual
+        $data['slug'] = Str::slug($data['title']); // Genera el slug
 
         Course::create($data);
 
-        return redirect()->route('dashboard')->with('success', 'Curso creado con éxito.');
+        return redirect()->route('dashboard')->with('success', 'Curso creado correctamente.');
     }
 
     /**
-     * Muestra la página pública de un curso.
+     * Muestra el detalle de un curso público (R8).
      */
     public function showPublic(Course $course)
     {
-        // Carga las reseñas relacionadas con el curso y su usuario para mostrar
-        $reviews = $course->reviews()->with('user')->latest()->get(); 
-        return view('courses.show', compact('course', 'reviews'));
-    }
+        // Carga las reseñas y el usuario de cada reseña.
+        $course->load(['reviews.user']); 
+        
+        // Carga el promedio de rating y el conteo de reseñas para mostrar en la vista
+        $course = $course->loadAvg('reviews', 'rating')->loadCount('reviews');
 
+        return view('courses.show', compact('course'));
+    }
+    
     /**
      * Método show vacío (para evitar conflicto con la ruta pública courses.show).
      */
