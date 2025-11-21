@@ -29,12 +29,8 @@ class UpdateCourseRequest extends FormRequest
             'instructor' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string'],
             'category' => ['required', 'string', 'max:255'],
-            
-            // Nuevo: Campo para la URL de la imagen
             'image_url' => ['nullable', 'url', 'max:255'], 
-            
-            // Nuevo: Campo para los módulos (se asume un texto largo)
-            'modules' => ['required', 'string'],
+            'modules_count' => ['required', 'string'],
         ];
     }
 }
