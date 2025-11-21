@@ -3,95 +3,99 @@
 @section('content')
 <div class="py-12">
     <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
-        <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-8">
-            <h2 class="text-3xl font-extrabold text-gray-900 mb-6 border-b pb-2">
+        <div class="bg-white overflow-hidden shadow-2xl sm:rounded-2xl p-8 border border-purple-200">
+            <h2 class="text-3xl font-extrabold text-gray-900 mb-6 border-b-2 border-purple-500 pb-4">
                 ✨ Crear Nuevo Curso
             </h2>
 
-            {{-- 🚨 CRÍTICO: Añadimos enctype="multipart/form-data" para permitir la subida de archivos 🚨 --}}
             <form action="{{ route('courses.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
 
                 {{-- Título, Instructor y Categoría --}}
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div>
-                        <label for="title" class="block text-sm font-medium text-gray-700">Título del Curso</label>
+                        <label for="title" class="block text-lg font-bold text-gray-700 mb-2">📝 Título del Curso</label>
                         <input type="text" name="title" id="title" required
-                               class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                               value="{{ old('title') }}">
+                               class="mt-1 block w-full border-2 border-gray-300 rounded-2xl shadow-sm p-4 focus:border-purple-500 focus:ring-purple-500 transition duration-200"
+                               value="{{ old('title') }}"
+                               placeholder="Ingresa el título del curso">
                         @error('title')
-                            <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                            <p class="text-sm text-red-600 mt-2 font-bold">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <div>
-                        <label for="instructor" class="block text-sm font-medium text-gray-700">Nombre del Instructor</label>
+                        <label for="instructor" class="block text-lg font-bold text-gray-700 mb-2">👨‍🏫 Nombre del Instructor</label>
                         <input type="text" name="instructor" id="instructor" required
-                               class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                               value="{{ old('instructor') }}">
+                               class="mt-1 block w-full border-2 border-gray-300 rounded-2xl shadow-sm p-4 focus:border-purple-500 focus:ring-purple-500 transition duration-200"
+                               value="{{ old('instructor') }}"
+                               placeholder="Nombre del instructor">
                         @error('instructor')
-                            <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                            <p class="text-sm text-red-600 mt-2 font-bold">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <div>
-                        <label for="category" class="block text-sm font-medium text-gray-700">Categoría</label>
+                        <label for="category" class="block text-lg font-bold text-gray-700 mb-2">🏷️ Categoría</label>
                         <select name="category" id="category" required
-                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                class="mt-1 block w-full border-2 border-gray-300 rounded-2xl shadow-sm p-4 focus:border-purple-500 focus:ring-purple-500 transition duration-200">
                             <option value="">Selecciona una categoría</option>
                             @foreach ($categories as $cat)
                                 <option value="{{ $cat }}" {{ old('category') == $cat ? 'selected' : '' }}>{{ $cat }}</option>
                             @endforeach
                         </select>
                         @error('category')
-                            <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                            <p class="text-sm text-red-600 mt-2 font-bold">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <div>
-                        <label for="modules_count" class="block text-sm font-medium text-gray-700">Número de Módulos</label>
+                        <label for="modules_count" class="block text-lg font-bold text-gray-700 mb-2">📚 Número de Módulos</label>
                         <input id="modules_count" 
-                               class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition duration-150" 
+                               class="w-full border-2 border-gray-300 rounded-2xl shadow-sm p-4 focus:ring-purple-500 focus:border-purple-500 transition duration-200" 
                                type="number" 
                                name="modules_count" 
                                value="{{ old('modules_count', 1) }}" 
-                               min="1" required />
+                               min="1" 
+                               required 
+                               placeholder="Cantidad de módulos" />
                         @error('modules_count')
-                            <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                            <p class="text-sm text-red-600 mt-2 font-bold">{{ $message }}</p>
                         @enderror
                     </div>
                 </div>
 
                 {{-- Campo para Subir Imagen (image_file) --}}
                 <div class="mb-8">
-                    <label for="image_file" class="block text-sm font-medium text-gray-700 mb-3">Imagen del Curso (Opcional)</label>
+                    <label for="image_file" class="block text-lg font-bold text-gray-700 mb-4">🖼️ Imagen del Curso (Opcional)</label>
                     <div class="relative">
                         <input type="file" name="image_file" id="image_file" 
-                            class="block w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                            class="block w-full text-lg text-gray-500 file:mr-6 file:py-4 file:px-6 file:rounded-2xl file:border-0 file:text-lg file:font-bold file:bg-gradient-to-r file:from-purple-500 file:to-purple-600 file:text-white hover:file:from-purple-600 hover:file:to-purple-700 border-2 border-gray-300 rounded-2xl p-4 focus:outline-none focus:ring-4 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 shadow-sm"
                             accept="image/*">
                     </div>
-                    <p class="text-xs text-gray-500 mt-2">Sube una imagen (máx. 2MB). Si no subes, se usará una imagen de placeholder.</p>
+                    <p class="text-sm text-gray-500 mt-3 ml-2">📎 Sube una imagen (máx. 2MB). Si no subes, se usará una imagen de placeholder.</p>
                     @error('image_file')
-                        <p class="text-sm text-red-600 mt-2">{{ $message }}</p>
+                        <p class="text-sm text-red-600 mt-3 font-bold">{{ $message }}</p>
                     @enderror
                 </div>
                 
                 {{-- Campo Descripción --}}
                 <div class="mb-6">
-                    <label for="description" class="block text-sm font-medium text-gray-700">Descripción del Curso</label>
-                    <textarea name="description" id="description" rows="5" required
-                              class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ old('description') }}</textarea>
+                    <label for="description" class="block text-lg font-bold text-gray-700 mb-2">📄 Descripción del Curso</label>
+                    <textarea name="description" id="description" rows="6" required
+                              class="mt-1 block w-full border-2 border-gray-300 rounded-2xl shadow-sm p-4 focus:border-purple-500 focus:ring-purple-500 transition duration-200"
+                              placeholder="Describe el contenido y objetivos del curso">{{ old('description') }}</textarea>
                     @error('description')
-                        <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                        <p class="text-sm text-red-600 mt-2 font-bold">{{ $message }}</p>
                     @enderror
                 </div>
 
                 {{-- Botones de Acción --}}
-                <div class="flex items-center justify-end border-t pt-4">
-                    <a href="{{ route('dashboard') }}" class="text-gray-600 hover:text-gray-900 font-medium mr-4 px-4 py-2 rounded-md hover:bg-gray-100 transition duration-150 ease-in-out">
-                        Cancelar
+                <div class="flex items-center justify-end border-t-2 border-gray-200 pt-6">
+                    <a href="{{ route('dashboard') }}" class="text-gray-600 hover:text-gray-900 font-bold mr-6 px-6 py-3 rounded-xl hover:bg-gray-100 transition duration-200 ease-in-out border-2 border-gray-300">
+                        ↩️ Cancelar
                     </a>
-                    <button type="submit" class="inline-flex items-center px-6 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-white uppercase tracking-wider hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition ease-in-out duration-150">
+                    <button type="submit" class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-purple-600 to-purple-700 border border-transparent rounded-2xl font-black text-white uppercase tracking-wider hover:from-purple-700 hover:to-purple-800 focus:outline-none focus:ring-4 focus:ring-purple-500 transition ease-in-out duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
                         ➕ Crear Curso
                     </button>
                 </div>

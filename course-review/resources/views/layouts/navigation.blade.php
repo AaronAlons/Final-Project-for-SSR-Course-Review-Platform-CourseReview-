@@ -5,11 +5,15 @@
             <div class="flex">
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
-                    {{-- Apunta a la Home pública si no está logueado, o al dashboard si lo está --}}
-                    <a href="{{ Auth::check() ? route('dashboard') : route('home') }}">
-                        <x-application-logo class="block h-9 w-auto fill-current text-gray-800" />
-                    </a>
-                </div>
+    {{-- Apunta a la Home pública si no está logueado, o al dashboard si lo está --}}
+    <a href="{{ Auth::check() ? route('dashboard') : route('home') }}">
+        {{-- 🚨 LOGO ACTUALIZADO: Reemplazamos <x-application-logo> por una etiqueta <img> 🚨 --}}
+        <img src="{{ asset('images/A-Steel-icon.png') }}"
+             alt="Logo A-Steel"
+             class="block h-9 w-auto" {{-- Clases para mantener el tamaño y ancho automáticos --}}
+        />
+    </a>
+</div>
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
@@ -21,7 +25,7 @@
                     @endauth
                     {{-- Enlace a la Home pública siempre disponible --}}
                     <x-nav-link :href="route('home')" :active="request()->routeIs('home')">
-                        {{ __('Home') }}
+                        {{ __('Cursos') }}
                     </x-nav-link>
                 </div>
             </div>
