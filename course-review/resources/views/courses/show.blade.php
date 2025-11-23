@@ -73,7 +73,7 @@
                     </p>
                 @else
                     @if (! $course->reviews->contains('user_id', auth()->id()))
-                    <form action="{{ route('reviews.store') }}" method="POST">
+                    <form action="{{ route('reviews.store', $course->slug) }}" method="POST">
                         @csrf
                         <input type="hidden" name="course_id" value="{{ $course->id }}">
                         

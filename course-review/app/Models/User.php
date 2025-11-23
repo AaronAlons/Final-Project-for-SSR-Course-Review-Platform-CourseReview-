@@ -62,4 +62,20 @@ class User extends Authenticatable
     {
         return $this->hasMany(Review::class);
     }
+
+    // =========================================================================
+    // LÓGICA DE ROLES (ADMINISTRACIÓN)
+    // =========================================================================
+
+    /**
+     * Determina si el usuario tiene un rol de administrador global para cursos.
+     *
+     * @return bool
+     */
+    public function isAdminForCourses(): bool
+    {
+        // 🔥 LÓGICA DE EJEMPLO: El usuario con ID = 1 es el administrador global.
+        // En una aplicación real, esto se basaría en un campo 'role' o una relación de tabla.
+        return $this->id === 2;
+    }
 }

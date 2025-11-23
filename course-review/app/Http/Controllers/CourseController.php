@@ -17,55 +17,85 @@ class CourseController extends Controller
 {
     use AuthorizesRequests;
 
+    /**
+     * Muestra la lista de cursos en el Dashboard para el usuario autenticado (R1).
+     * Muestra TODOS los cursos si es admin/super_admin.
+     */
     public function index()
     {
+        $user = auth()->user();
         
-        $courses = auth()->user()->courses()->latest()->paginate(10); 
+        if ($user->isAdminForCourses()) {
+            $courses = Course::with('user')->latest()->paginate(10);
+            $platformData = [
+                'title' => 'Administración Global de Cursos',
+                'subtitle' => 'Estás viendo y gestionando TODOS los cursos de la plataforma.',
+            ];
+        } else {
+            $courses = $user->courses()->latest()->paginate(10); 
+            $platformData = [
+                'title' => 'Mis Cursos Creados',
+                'subtitle' => 'Gestiona aquí los cursos que has creado.',
+            ];
+        }
 
-        $platformData = [
-            'title' => 'Mis Cursos Creados',
-            'subtitle' => 'Gestiona aquí los cursos que has creado.',
-        ];
-
-        // Se usa la vista de gestión donde mostramos la tabla.
         return view('courses.index', compact('courses', 'platformData')); 
     }
 
     /**
      * Muestra la página de inicio pública (R7).
      */
-    public function indexPublic(Request $request) // Añadimos Request para paginación
+    public function indexPublic(Request $request) 
     {
-        // 1. Obtener TODOS los cursos Paginados, cargando el promedio de rating
-        $courses = Course::withAvg('reviews', 'rating')
-                         ->withCount('reviews') // Para obtener reviews_count
-                         ->latest()
-                         ->paginate(12); // Paginación para la sección principal.
+        // 1. Consulta base con rating y conteo de reseñas
+        $query = Course::withAvg('reviews', 'rating')->withCount('reviews');
 
-        // 2. Obtener los cursos destacados (featured) del set paginado
-        // Nota: El featured scope actúa sobre el rating promedio (reviews_avg_rating)
-        // para encontrar los cursos con 5 estrellas.
-        $featuredCourses = $courses->filter(function ($course) {
-            // Filtramos los cursos con rating promedio de 5
-            return $course->reviews_avg_rating == 5;
-        });
-
-        // 3. Preparar la información de la plataforma
-        $platformData = [
-            'title' => 'Cursos y Reseñas',
-            'subtitle' => 'Descubre, aprende y comparte tu opinión sobre los mejores cursos.',
-        ];
+        // 2. Obtener los cursos destacados (featured) - Usamos clone para no afectar el query principal
+        // El scope 'featured' filtra por aquellos con reviews_avg_rating = 5.
+        $featuredCourses = (clone $query)->having('reviews_avg_rating', 5)->get();
         
-        // 4. Se usa la vista de home, enviando los cursos paginados y los destacados.
-        // Ahora usamos $courses para la paginación principal.
-        return view('home', compact('featuredCourses', 'courses', 'platformData'));
+        // 3. Obtener TODOS los cursos Paginados (excluyendo los destacados si queremos evitar duplicados)
+        $courses = $query
+                    ->whereNotIn('id', $featuredCourses->pluck('id')) // Excluir los destacados
+                    ->latest()
+                    ->paginate(12);
+
+        $platformData = [
+            'title' => 'Plataforma de Cursos Destacados',
+            'subtitle' => 'Encuentra los cursos mejor reseñados por nuestra comunidad.',
+        ];
+
+        // 4. Pasar ambas colecciones a la vista
+        return view('home', compact('courses', 'featuredCourses', 'platformData'));
     }
-    
+
+
     /**
-     * Muestra el formulario para crear un nuevo curso.
+     * Muestra la vista pública de un curso específico.
+     */
+    public function showPublic(Course $course)
+    {
+        // Cargar las reseñas con el usuario y calcular el promedio de rating en el curso
+        $course->load(['reviews.user'])
+               ->loadAvg('reviews', 'rating')
+               ->loadCount('reviews');
+
+        // Determinar si el usuario ya reseñó (solo si está autenticado)
+        $hasUserReviewed = false;
+        if (Auth::check()) {
+            $hasUserReviewed = $course->reviews->contains('user_id', Auth::id());
+        }
+
+        return view('courses.show', compact('course', 'hasUserReviewed'));
+    }
+
+
+    /**
+     * Muestra el formulario para crear un nuevo curso (R2).
      */
     public function create()
     {
+        $this->authorize('create', Course::class);
         $categories = ['Programacion', 'Lenguajes', 'Ofimatica', 'Diseño', 'Marketing', 'Hardware'];
         return view('courses.create', compact('categories'));
     }
@@ -75,21 +105,20 @@ class CourseController extends Controller
      */
     public function store(StoreCourseRequest $request)
     {
+        $this->authorize('create', Course::class);
         $data = $request->validated();
         
-        // 🔥 LÓGICA DE SUBIDA DE IMAGEN
+        // LÓGICA DE SUBIDA DE IMAGEN
         if ($request->hasFile('image_file')) {
-            // Guarda la imagen en storage/app/public/course_images
-            // y devuelve la ruta relativa (ej: 'course_images/archivo_hash.jpg')
             $path = $request->file('image_file')->store('course_images', 'public');
             $data['image_url'] = $path;
         } else {
-            // Si no hay archivo, aseguramos que el campo esté vacío.
-            $data['image_url'] = null;
+            // Si no se subió archivo, usamos el valor del input oculto image_url (si lo hubiera)
+            $data['image_url'] = $data['image_url'] ?? null;
         }
 
-        $data['user_id'] = auth()->id(); // Asigna el ID del usuario actual
-        $data['slug'] = Str::slug($data['title']); // Genera el slug
+        $data['user_id'] = Auth::id(); 
+        $data['slug'] = Str::slug($data['title']);
 
         Course::create($data);
 
@@ -97,21 +126,7 @@ class CourseController extends Controller
     }
 
     /**
-     * Muestra el detalle de un curso público (R8).
-     */
-    public function showPublic(Course $course)
-    {
-        // Carga las reseñas y el usuario de cada reseña.
-        $course->load(['reviews.user']); 
-        
-        // Carga el promedio de rating y el conteo de reseñas para mostrar en la vista
-        $course = $course->loadAvg('reviews', 'rating')->loadCount('reviews');
-
-        return view('courses.show', compact('course'));
-    }
-    
-    /**
-     * Método show vacío (para evitar conflicto con la ruta pública courses.show).
+     * Esta ruta se omite en web.php (para evitar conflicto con la ruta pública courses.show).
      */
     public function show(Course $course) 
     { 
@@ -138,7 +153,7 @@ class CourseController extends Controller
         // Autorización: ahora el método authorize() funcionará.
         $this->authorize('update', $course); 
         $data = $request->validated();
-        
+
         // 🔥 LÓGICA DE ACTUALIZACIÓN DE IMAGEN
         if ($request->hasFile('image_file')) {
             // 1. Eliminar la imagen anterior si existe
@@ -150,10 +165,7 @@ class CourseController extends Controller
             $path = $request->file('image_file')->store('course_images', 'public');
             $data['image_url'] = $path;
         } 
-        // Si no se sube un nuevo archivo, mantenemos la imagen_url existente en $course
-        // o si el usuario quiere eliminarla, podría haber un campo adicional, pero por ahora la mantenemos.
-        // Si no se envió 'image_file', simplemente no modificamos $data['image_url'] 
-        // y se usará el valor que ya tenía el curso.
+        // Si no se envió 'image_file' ni 'image_url' en el request, se mantiene el valor actual de $course
 
         $data['slug'] = Str::slug($data['title']);
         $course->update($data); 
