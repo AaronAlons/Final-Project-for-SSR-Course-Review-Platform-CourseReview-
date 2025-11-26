@@ -46,28 +46,35 @@ class CourseController extends Controller
      * Muestra la página de inicio pública (R7).
      */
     public function indexPublic(Request $request) 
-    {
-        // 1. Consulta base con rating y conteo de reseñas
-        $query = Course::withAvg('reviews', 'rating')->withCount('reviews');
+{
+    // 1. Consulta base con rating y conteo de reseñas
+    $query = Course::withAvg('reviews', 'rating')->withCount('reviews');
 
-        // 2. Obtener los cursos destacados (featured) - Usamos clone para no afectar el query principal
-        // El scope 'featured' filtra por aquellos con reviews_avg_rating = 5.
-        $featuredCourses = (clone $query)->having('reviews_avg_rating', 5)->get();
-        
-        // 3. Obtener TODOS los cursos Paginados (excluyendo los destacados si queremos evitar duplicados)
-        $courses = $query
-                    ->whereNotIn('id', $featuredCourses->pluck('id')) // Excluir los destacados
-                    ->latest()
-                    ->paginate(12);
+    // 2. Obtener los cursos destacados - SOLUCIÓN CORREGIDA
+    // En lugar de HAVING, usamos whereHas con una subconsulta
+    $featuredCourses = (clone $query)
+        ->whereHas('reviews', function($q) {
+            $q->selectRaw('AVG(rating) as avg_rating')
+              ->havingRaw('AVG(rating) = 5');
+        })
+        ->get();
+    
+    // Alternativa más simple: filtrar después de obtener los datos
+    // $featuredCourses = (clone $query)->get()->filter(fn($course) => $course->reviews_avg_rating == 5);
 
-        $platformData = [
-            'title' => 'Plataforma de Cursos Destacados',
-            'subtitle' => 'Encuentra los cursos mejor reseñados por nuestra comunidad.',
-        ];
+    // 3. Obtener TODOS los cursos Paginados (excluyendo los destacados)
+    $courses = $query
+                ->whereNotIn('id', $featuredCourses->pluck('id'))
+                ->latest()
+                ->paginate(12);
 
-        // 4. Pasar ambas colecciones a la vista
-        return view('home', compact('courses', 'featuredCourses', 'platformData'));
-    }
+    $platformData = [
+        'title' => 'Plataforma de Cursos Destacados',
+        'subtitle' => 'Encuentra los cursos mejor reseñados por nuestra comunidad.',
+    ];
+
+    return view('home', compact('courses', 'featuredCourses', 'platformData'));
+}
 
 
     /**

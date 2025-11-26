@@ -49,8 +49,8 @@ class Course extends Model
      * Scope para obtener cursos destacados.
      */
     public function scopeFeatured($query)
-    {
-        // El campo 'reviews_avg_rating' es creado por withAvg en el controlador.
-        return $query->having('reviews_avg_rating', 5);
-    }
+{
+    // Este scope ya no se usa de la misma manera
+    return $query;
+}
 }
