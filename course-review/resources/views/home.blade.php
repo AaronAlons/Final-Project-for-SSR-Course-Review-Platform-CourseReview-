@@ -1,7 +1,7 @@
 @extends('layouts.app') 
 
 @section('content')
-<header class="bg-gradient-to-r from-purple-900 via-purple-700 to-purple-900 py-20 text-white shadow-2xl">
+<header class="bg-gradient-to-r from-purple-900 via-purple-700 to-purple-900 py-20 text-white shadow-2xl relative">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <h1 class="text-5xl font-black mb-4 leading-tight tracking-tight">
             {{ $platformData['title'] }}
@@ -18,6 +18,13 @@
             </p>
         @endguest
     </div>
+
+    {{-- Botón flotante para ver código fuente --}}
+    <button onclick="showSourceCode()" 
+            class="absolute bottom-4 right-4 bg-white text-purple-700 hover:bg-purple-100 font-bold py-2 px-4 rounded-lg transition duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center space-x-2">
+        <span>📄</span>
+        <span>Código Fuente</span>
+    </button>
 </header>
 
 <section class="py-16 bg-gray-50">
@@ -151,5 +158,98 @@
         @endif
     </div>
 </section>
+
+{{-- Modal para mostrar el código fuente --}}
+<div id="sourceCodeModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-6xl w-full mx-4 max-h-[90vh] overflow-hidden">
+        <div class="flex justify-between items-center bg-purple-600 text-white p-6">
+            <h3 class="text-xl font-bold">📄 Código Fuente - home.blade.php</h3>
+            <button onclick="closeSourceCode()" class="text-white hover:text-purple-200 text-2xl font-bold">
+                &times;
+            </button>
+        </div>
+        <div class="p-6 bg-gray-900 text-gray-300 font-mono text-xs overflow-auto max-h-[70vh]">
+            <pre id="sourceCodeContent" class="whitespace-pre-wrap break-words"></pre>
+        </div>
+        <div class="bg-gray-100 px-6 py-4 flex justify-between items-center">
+            <span class="text-sm text-gray-600">Total de líneas: <span id="lineCount">0</span></span>
+            <div class="space-x-2">
+                <button onclick="closeSourceCode()" class="bg-gray-600 text-white hover:bg-gray-700 font-bold py-2 px-4 rounded-lg transition duration-300">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Función para escapar HTML y mostrar el código fuente completo
+function getPageSourceCode() {
+    // Obtener todo el HTML de la página actual
+    const htmlContent = document.documentElement.outerHTML;
+    
+    // Escapar caracteres HTML para mostrar como texto
+    const escapedHtml = htmlContent
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    
+    return escapedHtml;
+}
+
+function showSourceCode() {
+    const modal = document.getElementById('sourceCodeModal');
+    const contentElement = document.getElementById('sourceCodeContent');
+    const lineCountElement = document.getElementById('lineCount');
+    
+    // Obtener y mostrar el código fuente
+    const sourceCode = getPageSourceCode();
+    contentElement.innerHTML = sourceCode;
+    
+    // Contar líneas
+    const lines = sourceCode.split('\n').length;
+    lineCountElement.textContent = lines;
+    
+    // Mostrar modal
+    modal.classList.remove('hidden');
+}
+
+function closeSourceCode() {
+    document.getElementById('sourceCodeModal').classList.add('hidden');
+}
+
+function copySourceCode() {
+    const sourceCode = getPageSourceCode();
+    const unescapedCode = sourceCode
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#039;/g, "'");
+    
+    navigator.clipboard.writeText(unescapedCode).then(() => {
+        alert('Código copiado al portapapeles');
+    }).catch(err => {
+        console.error('Error al copiar: ', err);
+        alert('Error al copiar el código');
+    });
+}
+
+// Cerrar modal con ESC
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeSourceCode();
+    }
+});
+
+// Cerrar modal haciendo click fuera del contenido
+document.getElementById('sourceCodeModal').addEventListener('click', function(event) {
+    if (event.target === this) {
+        closeSourceCode();
+    }
+});
+</script>
 
 @endsection
